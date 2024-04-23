@@ -1,0 +1,76 @@
+Alkatraz: The Edge ("Fairlight", "Inside Outing"...), U.S. Gold ("E-Motion", "Ghouls 'n Ghosts"...), etc.
+--alkatraz
+Amstrad firmware (normal files and headerless blocks)
+--amstrad
+Bleepload v1 (single-edged bits) + Melvyn Wright's Musical Loader: "Cylu", "Don't Panic", "Spiky Harold"...
+--bleepload1
+Bleepload v2 (double-edged bits): "Bubble Bobble", "The Sentinel", re-releases of Bleepload v1...
+--bleepload2
+Cassys ("Dynamite Dan II", "Mermaid Madness", "Tempest", "Wonder Boy"...)
+--cassys
+EH Services + Titus ("Dick Tracy", "Knight Force"...)
+--ehservices
+Gremlin Graphics ("Basil Private Detective", "Mickey Mouse", "Skate Crazy"...)
+--gremlin1
+Gremlin Graphics ("Impossamole", "Mask", "Samurai Trilogy"...)
+--gremlin2
+Hexagon ("Gauntlet 3", "Indiana Jones and the Fate of Atlantis", "Super Monaco GP", "Turrican"...)
+--hexagon
+Kansas City Standard (MSX1 firmware)
+--kansas
+Keytone protection ("Dragontorc", "They stole a Million"...)
+--keytone
+Maubeuge/MBG ("Marmelade" + "Rat Connection")
+--maubeuge
+Micro-Key protection ("Bobsleigh", "Steve Evans' Z"...)
+--microkey
+Opera Soft ("Cosa Nostra", "Livingstone Supongo", "Mutan Zone", "Sol Negro"...)
+--operasoft
+Poliload ("Astro Marine Corps", "Michel Fútbol Master", "Rescate Atlántida"...)
+--poliload
+Ricochet: Mastertronic ("Octoplex", "Rick Dangerous II"...) and budget re-releases
+--ricochet
+Spectrum firmware (normal files and headerless blocks)
+--spectrum
+Spectrum variant 0 (87%): Elite ("Super Trux"...), etc.
+--specvar0
+Spectrum variant 1 (120%): Gremlin ("Gauntlet", "Mask III"...), Grandslam ("Pacmania", "Thunderbirds"...), etc.
+--specvar1
+Spectrum variant 2 (133%): Dinamic ("Camelot Warriors", "Game Over"...), Zigurat ("Afteroids", "Humphrey"...), etc.
+--specvar2
+Speedlock v0 (ZX Spectrum 1984: "Daley Thompson's Decathlon")
+--speedlock0
+Speedlock v1 (ZX Spectrum 1984-1986: "Highway Encounter", "Bounty Bob Strikes Back"...)
+--speedlock1
+Speedlock v2 (Amstrad CPC 1984-1986: "Highway Encounter", "Donkey Kong", "Batman", "Arkanoid"...)
+--speedlock2
+Speedlock v3 (ZX Spectrum 1986-1987: "Alien Highway", "Head over Heels", "Leviathan", "Tarzan"...)
+--speedlock3
+Speedlock v4 (Amstrad CPC 1986-1988: "Combat School", "Gryzor", "Renegade", "Tarzan"...)
+--speedlock4
+Speedlock v5 (ZX Spectrum 1987-1988: "Athena", "Combat School", "Wizball"...)
+--speedlock5
+Speedlock v6 (Amstrad CPC 1988-: "Arkanoid II Revenge of Doh", "Operation Wolf", "The Untouchables"...)
+--speedlock6
+Speedlock v7 (ZX Spectrum 1988-: "Operation Wolf", re-release of "Daley Thompson's Decathlon"...)
+--speedlock7
+UnilODE: Oxford Digital + Domark ("Sailing", "Trivial Pursuit", "Yes Prime Minister"...)
+--unilode
+Zydroload: New Frontier + Infogrames ("Hostages", "North and South", "The Light Corridor"...)
+--zydroload
+* special case: "Carson City" from Elice
+--carsoncity -r 1
+* special case: "Frank Bruno's Boxing" from Elite
+--frankbruno
+* special case: "Nigel Mansell's Grand Prix"
+--speedlock4 -w 3
+* special cases: "Pink Panther" and "Western Games" from Magic Bytes
+-r 1
+* special cases: "Puffy's Saga" and "Skateball" from Ubi Soft
+--puffyssaga
+* special case: "Split Personalities" from Elite
+--splitpers
+* special case: "Super Cycle" (side A)
+--speedlock4
+* special case: "Super Cycle" (side B)
+--speedlock4 -w 1
