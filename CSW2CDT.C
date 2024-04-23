@@ -6,7 +6,7 @@
  //@@//@@/@@ //@@/@@@/@@@/@@//@@//@@//@@//@@/@@  //@@    since 2020/05/01-18:50
   //@@@@ //@@@@@//@@ //@@/@@@@@@ //@@@@//@@@@@  //@@@@ ------------------------
 
-#define MY_VERSION "20240224"
+#define MY_VERSION "20240328"
 #define MY_LICENSE "Copyright (C) 2020-2023 Cesar Nicolas-Gonzalez"
 
 #define GPL_3_INFO \
@@ -40,7 +40,8 @@ Contact information: <mailto:cngsoft@gmail.com> */
 unsigned char buffer[512]; FILE *fi,*fo,*fu;
 char *autosuffix(char *t,char *s,char *x) // returns a valid target path, generating it from the source and an extension if required
 {
-	if (t) return t; else if (!s) return NULL; else if ((char*)buffer!=s) strcpy(buffer,s);
+	if (t) return t; else if (!s) return NULL;
+	if ((char*)buffer!=s) strcpy(buffer,s);
 	if ((t=strrchr(buffer,'.'))&&(!(s=strrchr(buffer,
 	#ifdef _WIN32
 	'\\'
@@ -54,7 +55,8 @@ int ucase(int i) { return i>='a'&&i<='z'?i-32:i; } // returns ASCII upper case
 int endswith(char *s,char *x) // does the string `s` end in the suffix `x`? returns zero if FALSE
 {
 	int i=strlen(s),j=strlen(x);
-	if (i>=j) for (s+=i,x+=j;j&&ucase(*--s)==ucase(*--x);) --j; return !j;
+	if (i>=j) for (s+=i,x+=j;j&&ucase(*--s)==ucase(*--x);) --j;
+	return !j;
 }
 char topdigit(int i) { return (i+(i<10?'0':'7')); } // returns "fake" decimals beyond 9
 
@@ -62,9 +64,9 @@ char topdigit(int i) { return (i+(i<10?'0':'7')); } // returns "fake" decimals b
 
 // non-buffered shortcuts
 #define fget1() fgetc(fi)
-#define fput1(n) fputc(n,fo)
-#define fread1(t,i) fread(t,1,i,fi)
-#define fwrite1(t,i) fwrite(t,1,i,fo)
+#define fput1(n) fputc((n),fo)
+#define fread1(t,i) fread((t),1,(i),fi)
+#define fwrite1(t,i) fwrite((t),1,(i),fo)
 int fget4(void) { int i=fget1(); i|=fget1()<<8; i|=fget1()<<16; return (fget1()<<24)|i; }
 int fput4(int i) { fput1(i); fput1(i>>8); fput1(i>>16); return fput1(i>>24); }
 
@@ -85,8 +87,8 @@ int fsend4(int i) { fsend1(i); fsend1(i>>8); fsend1(i>>16); return fsend1(i>>24)
 
 // common variables and functions ------------------------------------------- //
 
-#define ZXKHZ 3500
-#define ZX1HZ 3500000
+#define ZXKHZ (3500)
+#define ZX1HZ (3500000)
 int flag_e=5,hz=44100,ordinal=0,seconds=0; char tape_sign=0;
 const char csw24b[24]="Compressed Square Wave\032\001";
 
@@ -597,12 +599,16 @@ int detect_singles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int u) // gues
 	while (++l<l_h)
 	{
 		if (u_h<(i=sample[l]))
-			{ if (i*u>=u_l*200) break; u_h=i; }
+			if (i*u>=u_l*200) break; else u_h=i;
 		else if (u_l>i)
-			{ if (u_h*u>=i*200) break; u_l=i; }
+			if (u_h*u>=i*200) break; else u_l=i;
 		v+=i;
 	}
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int detect_singlez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int u) // slightly more strict version: reject maximum length
 	{ return ((o=detect_singles(o,w,w_l,w_h,l_l,l_h,u))&&o<l_h)?o:0; }
@@ -614,7 +620,11 @@ int define_singles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_
 	if (o+l_l>samples) return 0; // early exit!
 	int i,l=o,v=0,u_l=v_h,u_h=v_l; if ((l_h+=o)>samples) l_h=samples;
 	while (l<l_h&&(i=sample[l])>=v_l&&i<=v_h) { v+=i,++l; if (u_l>i) u_l=i; if (u_h<i) u_h=i; }
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int define_singlez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_h) // slightly more strict version: reject maximum length
 	{ return ((o=define_singles(o,w,w_l,w_h,l_l,l_h,v_l,v_h))&&o<l_h)?o:0; }
@@ -625,7 +635,11 @@ int choose_singles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_
 	if (o+l_l>samples) return 0; // early exit!
 	int i,l=o,v=0,u_l=v_h,u_h=v_l; if ((l_h+=o)>samples) l_h=samples;
 	while (l<l_h&&(i=sample[l])>=v_l&&i<=v_h) { v+=i,++l; if (u_l>i) u_l=i; if (u_h<i) u_h=i; }
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int choose_singlez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_lh,int v_hl,int v_h) // slightly more strict version: reject maximum length
 	{ return ((o=choose_singles(o,w,w_l,w_h,l_l,l_h,v_l,v_lh,v_hl,v_h))&&o<l_h)?o:0; }
@@ -636,7 +650,8 @@ int divide_singles(int o,int *w,int l,int v) // tell apart between short and lon
 {
 	if (!l) return 0; // early exit!
 	int i,j=0,u=0; do { if ((i=sample[o])<v) u+=i,++j; ++o; } while (--l);
-	if (w) *w=u; return j;
+	if (w) *w=u;
+	return j;
 }
 // no need for strict_singles() because single-signal streams are the finest possible granularity
 int encode_singles(int o,unsigned char *t,int l,int v) // encode a single-signal stream into bits
@@ -646,7 +661,8 @@ int encode_singles(int o,unsigned char *t,int l,int v) // encode a single-signal
 	if (!l) return 0; // early exit!
 	unsigned char m=128,b=0; int n=l;
 	do { if (sample[o]>=v) b|=m; ++o; if (!(m>>=1)) m=128,*t++=b,b=0; } while (--l);
-	if (m!=128) *t=b; return n;
+	if (m!=128) *t=b;
+	return n;
 }
 
 // notice that detect_hybrids(), define_hybrids() and divide_hybrids() are effectively identical to their single-signal counteparts;
@@ -659,7 +675,11 @@ int strict_hybrids(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v) // chec
 	if (o+l_l>samples) return 0; // this should never happen!
 	int i,l=o,u=0,u_l=v,u_h=v; if ((l_h+=o)>samples) l_h=samples;
 	while (l<l_h) { if ((i=sample[l])>=v) { u+=i,++l; if (u_h<i) u_h=i; } else if (l+1<l_h&&(i+=sample[l+1])<=v*2) { u+=i,l+=2; if (u_l>i) u_l=i; } else break; }
-	if ((l-=o)<l_l) return 0; if (w) *w=u; if (w_l) *w_l=APPROX2(u_l); if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=u;
+	if (w_l) *w_l=APPROX2(u_l);
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int encode_hybrids(int o,unsigned char *t,int l,int v) // encode a hybrid-signal stream into bits
 // (beware: the stream must have been deemed valid in advance and its length must be known)
@@ -669,7 +689,8 @@ int encode_hybrids(int o,unsigned char *t,int l,int v) // encode a hybrid-signal
 	if (!l) return 0; // early exit!
 	unsigned char m=128,b=0; int n=0; l+=o;
 	do { ++n; if (sample[o]>=v) b|=m; else ++o; if (!(m>>=1)) m=128,*t++=b,b=0; } while (++o<l);
-	if (m!=128) *t=b; return n;
+	if (m!=128) *t=b;
+	return n;
 }
 
 // because the bulk of tapes use double-signal encodings, we're better off giving them their own analysis functions
@@ -685,12 +706,16 @@ int detect_doubles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int u) // gues
 	while ((l+=2)<l_h)
 	{
 		if (u_h<(i=sample[l]+sample[l+1]))
-			{ if (i*u>=u_l*200) break; u_h=i; }
+			if (i*u>=u_l*200) break; else u_h=i;
 		else if (u_l>i)
-			{ if (u_h*u>=i*200) break; u_l=i; }
+			if (u_h*u>=i*200) break; else u_l=i;
 		v+=i;
 	}
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int detect_doublez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int u) // slightly more strict version: reject maximum length
 	{ return ((o=detect_doubles(o,w,w_l,w_h,l_l,l_h,u))&&o<l_h)?o:0; }
@@ -702,7 +727,11 @@ int define_doubles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_
 	if (o+l_l>samples) return 0; // early exit!
 	int i,l=o,v=0,u_l=v_h,u_h=v_l; if ((l_h+=o)>=samples) l_h=samples-1;
 	while (l<l_h&&(i=sample[l]+sample[l+1])>=v_l&&i<=v_h) { v+=i,l+=2; if (u_l>i) u_l=i; if (u_h<i) u_h=i; }
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int define_doublez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_h) // slightly more strict version: reject maximum length
 	{ return ((o=define_doubles(o,w,w_l,w_h,l_l,l_h,v_l,v_h))&&o<l_h)?o:0; }
@@ -712,7 +741,11 @@ int choose_doubles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_
 	if (o+l_l>samples) return 0; // early exit!
 	int i,l=o,v=0,u_l=v_h,u_h=v_l; if ((l_h+=o)>=samples) l_h=samples-1;
 	while (l<l_h&&(i=sample[l]+sample[l+1])>=v_l&&i<=v_h&&(i<=v_lh||i>=v_hl)) { v+=i,l+=2; if (u_l>i) u_l=i; if (u_h<i) u_h=i; }
-	if ((l-=o)<l_l) return 0; if (w) *w=v; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0; // failure!
+	if (w) *w=v;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int choose_doublez(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v_l,int v_lh,int v_hl,int v_h) // slightly more strict version: reject maximum length
 	{ return ((o=choose_doubles(o,w,w_l,w_h,l_l,l_h,v_l,v_lh,v_hl,v_h))&&o<l_h)?o:0; }
@@ -722,7 +755,8 @@ int divide_doubles(int o,int *w,int l,int v) // tell apart between short and lon
 {
 	if (!(l>>=1)) return 0; // early exit!
 	int i,j=0,u=0; do { if ((i=sample[o]+sample[o+1])<v) u+=i,++j; o+=2; } while (--l);
-	if (w) *w=u; return j<<1;
+	if (w) *w=u;
+	return j<<1;
 }
 /*int strict_doubles(int o,int *w,int *w_l,int *w_h,int l_l,int l_h,int v) // check whether a single-signal stream is actually made of double signals
 // o = offset, w = NULL / stream weight, l_l = minimum stream length, l_h = maximum stream length, v = average signal weight;
@@ -731,7 +765,11 @@ int divide_doubles(int o,int *w,int l,int v) // tell apart between short and lon
 	if (o+l_l>samples) return 0; // this should never happen!
 	int i,l=o,u=0,u_l=v,u_h=v; if ((l_h+=o)>=samples) l_h=samples-1;
 	while (l<l_h) { if (((i=sample[l])>=v?sample[l+1]>=v:sample[l+1]<v)) { u+=(i+=sample[l+1]),l+=2; if (u_h<i) u_h=i; if (u_l>i) u_l=i; } else break; }
-	if ((l-=o)<l_l) return 0; if (w) *w=u; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if ((l-=o)<l_l) return 0;
+	if (w) *w=u;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }*/
 int encode_doubles(int o,unsigned char *t,int l,int v) // encode a double-signal stream into bits
 // o = offset, *t = target buffer, l = stream length, v = average signal weight;
@@ -740,7 +778,8 @@ int encode_doubles(int o,unsigned char *t,int l,int v) // encode a double-signal
 	if (!(l>>=1)) return 0; // early exit!
 	unsigned char m=128,b=0; int n=l;
 	do { if (sample[o]+sample[o+1]>=v) b|=m; o+=2; if (!(m>>=1)) m=128,*t++=b,b=0; } while (--l);
-	if (m!=128) *t=b; return n;
+	if (m!=128) *t=b;
+	return n;
 }
 
 int weight_singles(int o,int l) // just sum all the weights of the samples at offset `o` and length `l`
@@ -753,7 +792,10 @@ int recalc_singles(int o,int *w,int *w_l,int *w_h,int l) // recalculate all weig
 {
 	int i,k=(o+l),u=0,u_l,u_h; if (k>samples) return 0; // this should never happen!
 	u_l=u_h=sample[o]; while (++o<k) { u+=i=sample[o]; if (u_h<i) u_h=i; if (u_l>i) u_l=i; }
-	if (w) *w=u; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if (w) *w=u;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 int recalc_doubles(int o,int *w,int *w_l,int *w_h,int l) // recalculate all weights (stream, minimum and maximum) in a known double-signal stream
 // o = offset, w = NULL / stream weight, w_l = NULL / minimum weight, w_h = NULL / maximum weight, l = stream length, v = average signal weight;
@@ -761,11 +803,18 @@ int recalc_doubles(int o,int *w,int *w_l,int *w_h,int l) // recalculate all weig
 {
 	int i,k=(o+l),u=0,u_l,u_h; if (k>samples) return 0; // this should never happen!
 	u_l=u_h=sample[o]+sample[o+1]; while ((o+=2)<k) { u+=i=sample[o]+sample[o+1]; if (u_h<i) u_h=i; if (u_l>i) u_l=i; }
-	if (w) *w=u; if (w_l) *w_l=u_l; if (w_h) *w_h=u_h; return l;
+	if (w) *w=u;
+	if (w_l) *w_l=u_l;
+	if (w_h) *w_h=u_h;
+	return l;
 }
 
 int middle_doubles(int o,int *w,int l,int h) // validate exactly one double-signal: returns 0 if invalid, 2 if valid
-	{ if (o+2>samples) return 0; o=sample[o]+sample[o+1]; if (w) *w=o; return o>=l&&o<=h?2:0; }
+{
+	if (o+2>samples) return 0; // early exit!
+	o=sample[o]+sample[o+1]; if (w) *w=o;
+	return o>=l&&o<=h?2:0;
+}
 // notice that middle_hybrid() would be equal to middle_single() when sample[o] is long, and to middle_doubles() when it's short;
 // middle_single() itself would simply set `*w` to sample[o] and tell whether sample[o] fits between `l` and `h`.
 
@@ -825,7 +874,8 @@ void encode_common_double(char r,char y,char z) // encode a common 2:2 tape bloc
 			{
 				case 1: // pad all incomplete bytes with 1s
 				case 0: // pad all incomplete bytes with 0s
-					if (z&1) tape_temp[tape_twotwo>>3]|=255>>n; tape_twotwo+=8-n;
+					if (z&1) tape_temp[tape_twotwo>>3]|=255>>n;
+					tape_twotwo+=8-n;
 					tape_tails-=APPROX2((8-n)*(weight_l+weight_h)); // decrease tails
 					break;
 			}
@@ -1146,7 +1196,7 @@ void encode_call_speedlocks(void)
 			oo+=i; //if (tape_temp[0]!=7||tape_temp[1]!=255||tape_temp[2]!=0) break; // the separator is wrong!
 		}
 	}
-	else // multipartite AND slow! the separators are barely distinguishable from BIT0 edges and the signal bias can be VERY strong :-(
+	else // if (detect_config_prm2&4) // multipartite AND slow! the separators are barely distinguishable from BIT0 edges and the signal bias can be VERY strong :-(
 	{
 		if (detect_config_prm2&2) // beware of Speedlock 5 and 7, again
 			i=tape_head[tape_heads-15][1];
@@ -1162,7 +1212,7 @@ void encode_call_speedlocks(void)
 			i=oo; k=128; tape_temp[0]=j=0; int w=0,v=0,n=0,z;
 			while (i<samples-1&&(l=sample[i+0]+sample[i+1])<=h)
 			{
-				w+=l; if (l>m) tape_temp[j]|=k,v+=l,n+=2; if (!(k>>=1)) tape_temp[++j]=0,k=128; i+=2;
+				w+=l; if (l>m) tape_temp[j]|=k,v+=l,n+=2; if (!(k>>=1)) tape_temp[++j]=0,k=128; i+=2; // manually encode bits and bytes
 				if (k==q) // byte boundary? check for separator! notice we use "couples", not "singles"; hence the APPROX_ZX2HZ(n,2) above
 					if ((z=weight_singles(i,10))>=ll&&z<=lh
 						&&(z=weight_singles(i+10,22))>=hl&&z<=hh
@@ -1180,7 +1230,7 @@ void encode_call_speedlocks(void)
 			// in later tapes the edge lengths become increasingly similar and effectively undistinguishable, hence the problems above :_(
 			if (k) break; // it's also worth stating that Speedlocks of this kind add a dummy trailer of 4x ZERO bits, i.e. 8x BIT0 edges
 			tape_export(); // export the previous data block
-			l=weight_singles(oo,10+12+10); // store separator
+			l=weight_singles(oo,10+22+10); // store separator
 			tape_bit0w=APPROX_HZ2ZX(l,64);
 			tape_bit1w=APPROX_HZ2ZX(l,32);
 			tape_twotwo=encode_doubles(oo,tape_temp,q=10+22+10,approxy(l,3,64));
@@ -1320,7 +1370,7 @@ void encode_call_kansas(void)
 		{
 			if (tape_onetwo&1) // special case: dangling last bit? get rid of it if possible!
 			{
-				int j; switch (tape_onetwo&6)
+				int j=tape_onetwo&6; switch (j)
 				{
 					case 0: i=0X00,j=128; break;
 					case 2: i=0X40,j= 32; break;
@@ -1675,7 +1725,7 @@ int tape_play19(void) // play the TZX BLOCK $19 1st half (tone)
 }
 int tape_play(void) // plays a generalised block; returns the consumed milliseconds
 {
-	int t=0,i,j,k; unsigned char a=(1<<tape_width)-1,b;
+	int t=0,i,j,k; unsigned char a=(1<<tape_width)-1,b=0;
 	for (i=0;tape_heads;++i,--tape_heads) // play head (tone+sync)
 		for (j=0;j<tape_head[i][0];t+=k,++tape_sign,++j)
 			k=tape_head[i][1],csw_send(k,tape_sign);
@@ -2010,6 +2060,8 @@ int main(int argc,char *argv[])
 		tape_sign=1; csw_init(); // signature + setup
 		hz=approxy(hz,100,95+flag_e);
 		fu=stdout; uprintl(); uprintm(); uprintl();
+		int loopleft=0,looppast,loopseek; // LOOP: blocks $24 + $25
+		int callleft=0,callpast,callseek; // CALL: blocks $26 + $27
 		while ((i=frecv1())>0)
 			switch (/*++ordinal,printf("%c%03d [%02X] ",topdigit(ordinal/1000),ordinal%1000,i),*/i)
 			{
@@ -2088,7 +2140,7 @@ int main(int argc,char *argv[])
 					uprintf("SAMPLE         --------- --------- %04d:---- ---%7d:%c%7d%9d\n",tape_wave,(i+7)>>3,((i+7)&7)+'1',h,tape_play());
 					break;
 				case 0x19:
-					frecv4();
+					k=frecv4(); k+=ftell1(); // save offset...
 					tape_tails=(h=frecv2())*ZXKHZ;
 					tape_heads=frecv4();
 					int npp=frecv1(),asp; if (!(asp=frecv1())) asp=256;
@@ -2112,6 +2164,7 @@ int main(int argc,char *argv[])
 					}
 					else
 						printf("--------- --- -------- %7d%9d\n",h,i);
+					fseek1(k); // ...and load stored offset
 					break;
 				case 0X20:
 					if (tape_tails=(h=frecv2())*ZXKHZ)
@@ -2136,17 +2189,17 @@ int main(int argc,char *argv[])
 					break;
 				case 0X24:
 					i=frecv2();
-					int loopleft=i,looppast=ordinal,loopseek=ftell1();
+					loopleft=i,looppast=ordinal,loopseek=ftell1();
 					uprintf("LOOP START: %d\n",loopleft);
 					break;
 				case 0X25:
-					if (loopleft&&--loopleft)
-						fseek1(loopseek),ordinal=looppast;
+					if (loopleft)
+						if (--loopleft)
+							fseek1(loopseek),ordinal=looppast;
 					uprintf("LOOP END: %d\n",loopleft);
 					break;
 				case 0X26:
 					i=frecv2();
-					int callleft,callpast,callseek;
 					if (callleft=i)
 					{
 						callpast=ordinal,callseek=ftell1()+2;
@@ -2170,12 +2223,11 @@ int main(int argc,char *argv[])
 					uprints("SELECT BLOCKS\n");
 					break;
 				case 0X2A:
-					frecv4();
+					fskip1(frecv4());
 					uprints("STOP THE TAPE ON 48K MODE\n");
 					break;
 				case 0X2B:
-					frecv4();
-					tape_sign=frecv1()&1;
+					k=frecv4()-1; tape_sign=frecv1()&1; fskip1(k);
 					uprintf("SET SIGNAL LEVEL %s\n",tape_sign?"HIGH":"LOW");
 					break;
 				// the remaining blocks are purely informational, fortunately for us...
@@ -2263,7 +2315,8 @@ int main(int argc,char *argv[])
 					if (!i) tape_sign+=k; else do { csw_send(i,tape_sign); j+=i; ++tape_sign; } while (--k);
 				}
 				while (l>0);
-				while (h>0) printf("     "),--h; printf("%7d\n",approx(j,ZXKHZ)); un_clock(j);
+				while (h>0) printf("     "),--h;
+				printf("%7d\n",approx(j,ZXKHZ)); un_clock(j);
 			}
 			else if (i==0X41544144) // "DATA"
 			{
@@ -2273,7 +2326,7 @@ int main(int argc,char *argv[])
 				j=0; for (k=0;k<l;++k) j+=tape_head[k][0]=frecv2(); printf(" BIT0 =%3dx%04d",l,l?approx(j,l):0); g+=j;
 				j=0; for (k=0;k<h;++k) j+=tape_head[k][1]=frecv2(); printf(" BIT1 =%3dx%04d",h,h?approx(j,h):0); g+=j;
 				j=0; printf("%4d%%%5d%8d:%c",approx(513000,g),zzz,(i+7)/8,((i+7)&7)+'1');
-				unsigned char m8=0,b8; do
+				unsigned char m8=0,b8=0; do
 				{
 					if (!(m8>>=1))
 						m8=128,b8=frecv1();

@@ -424,10 +424,13 @@ milliseconds.
 
 ## Version history ##
 
-- 20240224 - first public release. The list of double-hyphen encodings is
+- 20240224 -- first public release. The list of double-hyphen encodings is
 "amstrad", "alkatraz", "bleepload1", "bleepload2", "carsoncity", "cassys",
 "ehservices", "frankbruno", "gremlin1", "gremlin2", "hexagon", "kansas",
 "keytone", "maubeuge", "microkey", "operasoft", "poliload", "puffyssaga",
 "ricochet", "spectrum", "specvar0", "specvar1", "specvar2", "speedlock0",
 "speedlock1", "speedlock2", "speedlock3", "speedlock4", "speedlock5",
 "speedlock6", "speedlock7", "unilode" and "zydroload".
+- 20240328 -- minor patch. Added sanity checks when playing TZX blocks $19 and
+$2B (suggested by Beginner, Patrik and Woodster), fixed bug in encoders
+"speedlock6" and "speedlock7" (reported by Dlfrsilver and Imulilla).

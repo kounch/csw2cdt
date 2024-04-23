@@ -6,7 +6,7 @@
  //@@//@@/@@ //@@/@@@/@@@/@@//@@//@@//@@//@@/@@  //@@    since 2020/05/31-09:50
   //@@@@ //@@@@@//@@ //@@/@@@@@@ //@@@@//@@@@@  //@@@@ ------------------------
 
-#define MY_VERSION "20240224"
+#define MY_VERSION "20240328"
 #define MY_LICENSE "Copyright (C) 2020-2023 Cesar Nicolas-Gonzalez"
 
 #define GPL_3_INFO \
@@ -39,7 +39,8 @@ Contact information: <mailto:cngsoft@gmail.com> */
 unsigned char buffer[512]; FILE *fi,*fo;
 char *autosuffix(char *t,char *s,char *x) // return a valid path, with a new suffix if required
 {
-	if (t) return t; else if (!s) return NULL; else if ((char*)buffer!=s) strcpy(buffer,s);
+	if (t) return t; else if (!s) return NULL;
+	if ((char*)buffer!=s) strcpy(buffer,s);
 	if ((t=strrchr(buffer,'.'))&&(!(s=strrchr(buffer,
 	#ifdef _WIN32
 	'\\'
@@ -52,16 +53,16 @@ char *autosuffix(char *t,char *s,char *x) // return a valid path, with a new suf
 
 // I/O file operations, buffering and Intel lil-endian integer logic -------- //
 
-#define fread1(t,i) fread(t,1,i,fi)
-#define fwrite1(t,i) fwrite(t,1,i,fo)
-#define fput1(n) fputc(n,fo)
+#define fread1(t,i) fread((t),1,(i),fi)
+#define fwrite1(t,i) fwrite((t),1,(i),fo)
+#define fput1(n) fputc((n),fo)
 int fput4(int i) { fput1(i); fput1(i>>8); fput1(i>>16); return fput1(i>>24); } // non-buffered!
 
 unsigned char tsrc[1<<12],ttgt[1<<12]; int isrc=0,ilen=0,itgt=0; // I/O file buffers
 #define flush1() fwrite1(ttgt,itgt)
-int frecv1(void) { while (isrc>=ilen) if (isrc-=ilen,!(ilen=fread1(tsrc,sizeof(tsrc)))) return -1; return tsrc[isrc++]; }
+int frecv1(void) { while (isrc>=ilen) { if (isrc-=ilen,!(ilen=fread1(tsrc,sizeof(tsrc)))) return -1; } return tsrc[isrc++]; }
 int frecv4(void) { int i=frecv1(); i|=frecv1()<<8; i|=frecv1()<<16; return i|(frecv1()<<24); }
-int fsend1(int i) { ttgt[itgt++]=i; if (itgt>=length(ttgt)) { if (!flush1()) return -1; itgt=0; } return i; }
+int fsend1(int i) { ttgt[itgt++]=i; if (itgt>=length(ttgt)) { if (!flush1()) return -1; else itgt=0; } return i; }
 int fsend4(int i) { fsend1(i); fsend1(i>>8); fsend1(i>>16); return fsend1(i>>24); }
 
 // the main procedure proper ------------------------------------------------ //
@@ -253,7 +254,7 @@ int main(int argc,char *argv[])
 			// floor
 			while (l) fsend1(128),--l;
 		}
-		if (itgt&1) fsend1(0); flush1(); // RIFF even-padding + flush!
+		{ if (itgt&1) fsend1(0); } flush1(); // RIFF even-padding + flush!
 		printf(ok_bytes,(int)ftell(fi),i=(int)ftell(fo));
 		fseek(fo, 4,SEEK_SET); fput4(i-8); // file size-8 = chunk size+36
 		fseek(fo,24,SEEK_SET); fput4(hz); fput4(hz); // clock + bandwidth

@@ -6,7 +6,7 @@
  //@@//@@/@@ //@@/@@@/@@@/@@//@@//@@//@@//@@/@@  //@@    bits of CSW0 + CSW2CDT
   //@@@@ //@@@@@//@@ //@@/@@@@@@ //@@@@//@@@@@  //@@@@ ------------------------
 
-#define MY_VERSION "20240224"
+#define MY_VERSION "20240328"
 #define MY_LICENSE "Copyright (C) 2020-2023 Cesar Nicolas-Gonzalez"
 
 /* This notice applies to the source code of CSW2CDT and its binaries.
@@ -78,12 +78,12 @@ int OkTarget(HWND hwnd) // show the size of file `target`
 }
 int RunExe(HWND hwnd,char *s) // run a program and show a warning if required
 {
-	sprintf(buffer,"%s %s \"%s\" \"%s\"",s,params,source,target);
+	sprintf(buffer,"\"\"%s\" %s \"%s\" \"%s\"\"",s,params,source,target);
 	return system(buffer)?WarningBox(hwnd,buffer),0:1;
 }
 int RunStdout(HWND hwnd,char *s) // run a program and send its output to `target`
 {
-	sprintf(buffer,"%s %s \"%s\" nul > \"%s\"",s,params,source,target);
+	sprintf(buffer,"\"\"%s\" %s \"%s\" nul > \"%s\"\"",s,params,source,target);
 	return system(buffer)?WarningBox(hwnd,buffer),0:1;
 }
 
