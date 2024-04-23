@@ -1,0 +1,20 @@
+CC      = gcc
+CFLAGS  = -x c
+STRIP   = strip
+RM      = rm -f
+
+
+default: all
+
+all: csw0 csw2cdt
+
+csw0: CSW0.C
+	$(CC) $(CFLAGS) -o csw0 CSW0.C
+	$(STRIP) csw0
+
+csw2cdt: CSW2CDT.C
+	$(CC) $(CFLAGS) -o csw2cdt CSW2CDT.C
+	$(STRIP) csw2cdt
+
+clean:
+	$(RM) csw0 csw2cdt
